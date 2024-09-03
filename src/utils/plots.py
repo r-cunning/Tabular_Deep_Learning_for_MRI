@@ -72,3 +72,49 @@ def plot_report(report_dict):
     # Adjust layout
     plt.tight_layout()
     plt.show()
+    
+    
+    
+import torch
+
+def plot_reconstructions(autoencoder_report, feature_names=None):
+    for subject, data in autoencoder_report.items():
+        reconstructions = data['test_reconstructions']['reconstructions_scaled']
+        inputs = data['test_reconstructions']['inputs_scaled']
+
+        # Ensure reconstructions and inputs are both lists of tensors
+        assert len(reconstructions) == len(inputs), "Mismatch in number of reconstructions and inputs"
+
+        # Iterate over each reconstruction-input pair
+        for i, (reconstruction, input_data) in enumerate(zip(reconstructions, inputs)):
+            
+            features = feature_names[i]
+            # Convert tensors to numpy arrays for plotting
+            if type(reconstruction) == torch.Tensor:
+                recon_np = reconstruction.detach().numpy().flatten()
+            else:
+                recon_np = reconstruction.flatten()
+            input_np = np.array(input_data).flatten()
+
+            # Create bar chart
+            plt.figure(figsize=(10, 5))
+            bar_width = 0.35
+            indices = range(len(input_np))
+            # indices = features
+
+            plt.bar(indices, input_np, width=bar_width, label='Input', alpha=0.7)
+            plt.bar([index + bar_width for index in indices], recon_np, width=bar_width, label='Reconstruction', alpha=0.7)
+            
+            # Set x-axis labels
+            if features is not None:
+                plt.xticks(indices, features, rotation=45, ha='right')
+            else:
+                plt.xticks(indices)
+                
+                
+            plt.xlabel('Feature Index')
+            plt.ylabel('Value')
+            plt.title(f'Subject {subject}')
+            plt.legend()
+
+            plt.show()
